@@ -1,22 +1,30 @@
 #include <Arduino.h>
 #include <IRremote.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 
-// ir reciever declaration
+
+// lcd declatation
+LiquidCrystal_I2C lcd(0x27, 16,2);
+
+// ir reciever declarations
 IRrecv irrecv (8);
 decode_results results;
 
-// attribute declaration
+// attribute declarations
 int irSignal;
 boolean irPressed;
 String password;
 String input;
 int lastValue;
 int currentValue;
+int cycle;
 
-//function declaration
+//function declarations
 void readInfrared();
 void updateIRSignal(int);
 char convertSignal();
+void printCycle();
 
 //running code
 void setup() {
@@ -24,18 +32,24 @@ void setup() {
   irrecv.enableIRIn();
   irrecv.blink13(true);
 
+  lcd.begin();
+  lcd.backlight();
+
   password = "180622";
   input = "";
   pinMode(9, OUTPUT);
+  cycle = 0;
 }
 
 void loop() {
   boolean lastIrPressed = false;
   while (!input.equals(password)){
+    lcd.clear();
     readInfrared();
 
     if (irPressed && lastIrPressed != irPressed){
       input += convertSignal();
+      lcd.println(input);
       Serial.println(input);
     }
 
@@ -46,10 +60,22 @@ void loop() {
       }
     }
     lastIrPressed = irPressed;
-    lastValue = currentValue;
+  }
+  digitalWrite(9, true);
+  readInfrared();
+  if (irPressed && lastIrPressed != irPressed ){
+  if (irSignal == 0x1){
+    printCycle();
+    if (cycle > 13){
+      cycle = 0;
+    }
+  }
   }
 
+  lastIrPressed = irPressed;
 }
+
+
 
 void updateIRSignal(int value){
   irSignal = value & 0xff;
@@ -60,11 +86,9 @@ void readInfrared(){
     updateIRSignal(results.value);
     irrecv.resume();
     irPressed = true;
-    digitalWrite(9, true);
   }
   else {
     irPressed = false;
-    digitalWrite(9,false);
   }
   if (irPressed){
     currentValue = irSignal;
@@ -97,5 +121,68 @@ char convertSignal(){
     return '0';
   default:
     return ' ';
+  }
+}
+
+void printCycle(){
+  lcd.clear();
+  cycle++;
+  switch(cycle){
+    case 1:
+      lcd.print("hoi liefie");
+      Serial.println("hoi liefie");
+      break;
+    case 2 : 
+      lcd.print("ik hou heel veel van jou");
+      Serial.println("ik hou heel veel van jou");
+      break;
+    case 3:
+      lcd.print("maar ik heb niet super veel geld");
+      Serial.println("maar ik heb niet super veel geld");
+      break;
+    case 4:
+      lcd.print("ik wilde je alleen wel wat geven");
+      Serial.println("ik wilde je alleen wel wat geven");
+      break;
+    case 5:
+      lcd.print("iets persoonlijks");
+      Serial.println("iets persoonlijks");
+      break;
+    case 6:
+      lcd.print("dus ik wilde heel graag dit voor je maken");
+      Serial.println("dus ik wilde heel graag dit voor je maken");
+      break;
+    case 7:
+      lcd.print("je kan t (nog) niet houden en t werkt maar half");
+      Serial.println("je kan t (nog) niet houden en t werkt maar half");
+      break;
+    case 8:
+      lcd.print("en dat is  wel stom");
+      Serial.println("en dat is  wel stom");
+      break;
+    case 9:
+      lcd.print("daarom neem ik je snel een keertje mee uit eten");
+      Serial.println("daarom neem ik je snel een keertje mee uit eten");
+      break;
+    case 10:
+      lcd.print("en ik wil deze iets verder af maken zodat ik hem ook echt aan jou kan geven en zelfs nieuwe berrichten toe kan voegen");
+      Serial.println("en ik wil deze iets verder af maken zodat ik hem ook echt aan jou kan geven en zelfs nieuwe berrichten toe kan voegen");
+      break;
+    case 11:
+      lcd.print("dus dat gaat er nog aan komen");
+      Serial.println("dus dat gaat er nog aan komen");
+      break;
+    case 12:
+      lcd.print("sorry dat het niet een super groot cadeau was");
+      Serial.println("sorry dat het niet een super groot cadeau was");
+      break;
+    case 13:
+      lcd.print("ik hou van jou!");
+      Serial.println("ik hou van jou!");
+      break;
+    default:
+      lcd.print("het gaat nu opnieuw afspelen");
+      Serial.println("het gaat nu opnieuw afspelen");
+      break;
   }
 }
