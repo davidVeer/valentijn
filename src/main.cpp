@@ -30,11 +30,13 @@ void setup() {
 }
 
 void loop() {
+  boolean lastIrPressed = false;
   while (!input.equals(password)){
     readInfrared();
 
-    if (lastValue != currentValue){
+    if (irPressed && lastIrPressed != irPressed){
       input += convertSignal();
+      Serial.println(input);
     }
 
     for (int i = 0; i < input.length()-1; i++)
@@ -43,7 +45,7 @@ void loop() {
         input = "";
       }
     }
-    Serial.println(input);
+    lastIrPressed = irPressed;
     lastValue = currentValue;
   }
 
@@ -94,6 +96,6 @@ char convertSignal(){
   case 0x0:
     return '0';
   default:
-    break;
+    return ' ';
   }
 }
